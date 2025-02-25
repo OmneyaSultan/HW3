@@ -1,5 +1,5 @@
 import argparse
-from ollama import *
+from _ollama import *
 from bm25 import * 
 from tfidf import *
 

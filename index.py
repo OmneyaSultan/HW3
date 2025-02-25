@@ -1,36 +1,46 @@
-import pickle
 import argparse
-from bm25 import *
-from tfidf import *
+from pathlib import Path
 
+from bm25 import BM25
+from _ollama import OllamaModel
+from document_loader import load_documents
+
+def rag_loop(model, retriever):
+    while True:
+        user_input = input("Enter something (or '/exit' to quit): ")
+        if user_input == "/exit":
+            break
+        context = retriever.search(user_input)
+        context = [text for doc_id, text, score in context]
+        context = "\n\n\n".join(context)
+        response = model.query(context, user_input)
+        print(f"BOT RESPONSE: {response}")
 
 def get_arguments():
     # Please do not change the naming of these command line options or delete them. You may add other options for other hyperparameters but please provide with that the default values you used
     parser = argparse.ArgumentParser(description="Given a model name and text, index the text")
     parser.add_argument("-m", help="retriever model: what retriever to use", default="bm25")
-    parser.add_argument("-i",  help="inputfile: the name/path of the file to index; it has to be read one text per line", default="test_data.txt")
-    parser.add_argument("-n", help="index_name: the name/path of the index (you should write it on disk)", default="default.index")
+    parser.add_argument("-i",  help="inputfile: the name/path of the file to index", default="./datasets/retrieval_texts.txt")
+    parser.add_argument("-n", help="index_name: the name/path of the index (you should write it on disk)", default="bm25_index.pkl")
 
     return parser.parse_args()
-
 
 
 if __name__ == "__main__":
     args = get_arguments()
 
-    if "bm25" in args.m:
-        model = BM25(model_file=args.m)
-    else:
-        ## TODO Add any other models you wish to evaluate
-        model = TFIDF(model_file=args.n)
-        
+    if not Path(args.n).exists():
+        print("Loading Documents")
+        docs = load_documents(args.i)
+        print("Indexing")
+        index = BM25(k1=1.2, b=0.75, epsilon=0.25, max_words=15)
+        index.index(docs)
+        print("Storing index")
+        index.save(args.n)
+    
+    print("Loading index")
+    retriever = BM25(k1=1.2, b=0.75, epsilon=0.25, max_words=15).load(args.n)
+    print("Loading Model")
+    model = OllamaModel("tinyllama")
+    rag_loop(model, retriever)
 
-    print(f"Running TF-IDF Indexing on file: {args.i}")  
-    index = model.index(args.i)
-    print(f"Indexing result: {index}")  
-
-    print("TF-IDF Indexing Output:", index)
-    results = model.search("what can I grow in the garden that's rewarding", k = 3)
-    ## Save the index
-    with open(args.n, "wb") as file:
-        pickle.dump(index, file)
