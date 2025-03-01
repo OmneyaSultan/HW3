@@ -38,6 +38,7 @@ def get_arguments():
     parser.add_argument("-i", help="path of the input file of questions, where each question is in the form: <text> for each newline", default="datasets/question.dev.txt")
     parser.add_argument("-o", help="path of the file where the answers should be written", default="datasets/results/dev") # Respect the naming convention for the model: make sure to name it *.answers.txt in your workplace otherwise the grading script will fail
 
+    parser.add_argument("--no-retrieve", action="store_true", help="Disables retrieval and reranking", default=False)
     parser.add_argument("--rerank", action="store_true", help="Controls whether reranking is enabled with cross encoder", default=False)
     parser.add_argument("--sample", action="store_true", help="Controls whether a sample of evaluation dataset questions is tested", default=False)
     parser.add_argument("--rr-top-k", help="Number of context units retrieved by reranker", default=5, type=int)
@@ -106,16 +107,19 @@ def get_flow_name(args):
 
 if __name__ == "__main__":
     args = get_arguments()
-    if args.rerank:
+    if args.rerank and not args.no_retrieve:
       print("Loading Reranker")
       from retrievers.reranker import HFReranker
       reranker = HFReranker(top_k=args.rr_top_k)
     else:
       reranker = None
-    retriever = RETRIEVER_LUT[args.r](args)
+    if not args.no_retrieve:
+      retriever = RETRIEVER_LUT[args.r](args)
+    else:
+      retriever = None
     generator = GENERATOR_LUT[args.m]()
     rag_flow = RAG(generator, retriever, reranker)
-    questions = open(args.i).readlines()[1:]
+    questions = open(args.i, 'r', encoding='utf-8').readlines()[1:]
     if args.sample:
       questions = questions[:1]
     results = evaluate(rag_flow, questions)

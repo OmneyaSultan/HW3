@@ -12,9 +12,12 @@ class Gemma2_7b_it:
     )
 
   def query(self, query, documents):
-    context = "\n\n\n\n##### INFORMATION ##### \n\n\n\n".join(documents)
-    context = "\n\n\n\n##### INFORMATION ##### \n\n\n\n" + context
-    input_text = f"Use this information: {context}\n to answer this question: {query}"
+    if len(documents):
+      context = "\n\n\n\n##### INFORMATION ##### \n\n\n\n".join(documents)
+      context = "\n\n\n\n##### INFORMATION ##### \n\n\n\n" + context
+      input_text = f"Use this information: {context}\n to answer this question: {query}"
+    else:
+      input_text = f"Answer this question: {query}"
     input_ids = self.tokenizer(input_text, return_tensors="pt").to("cuda")
     outputs = self.model.generate(**input_ids, max_new_tokens=64)
     outputs = self.tokenizer.decode(outputs[0])
