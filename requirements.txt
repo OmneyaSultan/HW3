@@ -1,0 +1,3 @@
+bitsandbytes
+rank_bm25
+faiss_cpu
