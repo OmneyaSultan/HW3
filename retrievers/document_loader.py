@@ -1,7 +1,7 @@
 import re
 
 def load_documents(path):
-    with open(path) as f:
+    with open(path, 'r', encoding='utf-8') as f:
         text = f.read()
     pattern = r'"[0-9_]+\.txt\t.*?'
     matches = list(re.finditer(pattern, text))
@@ -18,12 +18,3 @@ def load_documents(path):
         document_content = document_content.replace(document_id, "")
         documents.append(document_content)
     return documents
-
-
-# Example usage:
-if __name__ == "__main__":
-    docs = load_documents("./datasets/retrieval_texts.txt")
-    for doc in docs:
-        print("ID:", doc["id"])
-        print("Text snippet:", doc["text"][:100], "...")
-        print("=" * 80)

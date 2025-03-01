@@ -8,7 +8,7 @@ class Gemma2_2b:
     self.pipe = pipeline(
     "text-generation",
     model="google/gemma-2-2b",
-    device="cuda",  # replace with "mps" to run on a Mac device
+    device="cuda",
   )
 
   def query(self, query, documents):
@@ -21,7 +21,7 @@ class Gemma2_2b:
     return response
 
 
-class Phi3Small128KInstruct():
+class Phi3Mini4KInstruct():
   def __init__(self, max_tokens=500):
     self.generation_args = {
       "max_new_tokens": 500,
@@ -29,7 +29,7 @@ class Phi3Small128KInstruct():
       "temperature": 0.0,
       "do_sample": False,
     }
-    model_id = "microsoft/Phi-3-small-128k-instruct"
+    model_id = "microsoft/Phi-3-mini-4k-instruct"
     model = AutoModelForCausalLM.from_pretrained(
         model_id, 
         torch_dtype="auto", 
@@ -38,7 +38,7 @@ class Phi3Small128KInstruct():
     assert torch.cuda.is_available(), "This model needs a GPU to run ..."
     device = torch.cuda.current_device()
     model = model.to(device)
-    tokenizer = AutoTokenizer.from_pretrained(model_id)
+    tokenizer = AutoTokenizer.from_pretrained(model_id, trust_remote_code=True, )
     self.pipe = pipeline(
         "text-generation",
         model=model,
