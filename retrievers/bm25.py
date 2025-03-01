@@ -6,6 +6,7 @@ import spacy
 from pathlib import Path
 import os
 
+spacy.require_gpu()
 nlp = spacy.load('en_core_web_lg')
 
 def lemmatize_text(text):

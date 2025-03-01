@@ -20,3 +20,4 @@ class Gemma2_7b_it:
     outputs = self.tokenizer.decode(outputs[0])
     outputs = outputs.replace(input_text, "")
     return outputs
+
