@@ -103,7 +103,10 @@ def get_flow_name(args):
     rerank = "_rr"
   else:
     rerank = ""
-  return f"{args.m}_{args.r}{rerank}"
+  if not args.no_retrieve:
+    return f"{args.m}_{args.r}{rerank}"
+  else:
+    return f"{args.m}"
 
 if __name__ == "__main__":
     args = get_arguments()
